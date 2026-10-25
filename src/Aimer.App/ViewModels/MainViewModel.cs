@@ -20,6 +20,8 @@ public enum CursorShape
 {
     Crosshair,
     Arrow,
+    Scope,
+    BowArrow,
     Sword,
     Lightsaber,
     Rocket,
@@ -144,6 +146,8 @@ public partial class MainViewModel : ViewModelBase
         Shape = SelectedShape switch
         {
             CursorShape.Arrow => PointerShape.Arrow,
+            CursorShape.Scope => PointerShape.Scope,
+            CursorShape.BowArrow => PointerShape.BowArrow,
             CursorShape.Lightsaber => PointerShape.Lightsaber,
             CursorShape.Rocket => PointerShape.Rocket,
             _ => PointerShape.Sword,

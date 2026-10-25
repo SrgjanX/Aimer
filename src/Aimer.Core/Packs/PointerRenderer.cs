@@ -39,13 +39,6 @@ public static class PointerRenderer
             new(Box(28, 36, 1.4), c => Shade(c, 0.45)),
             new(Circle(38, 2.4), c => Shade(c, 0.6)),
         ],
-        [PointerShape.Dagger] =
-        [
-            new(Polygon((0, 0), (3.5, 1.6), (16, 1.6), (16, -1.6), (3.5, -1.6)), c => c),
-            new(Box(16, 18, 4.5), c => Shade(c, 0.6)),
-            new(Box(18, 24, 1.2), c => Shade(c, 0.45)),
-            new(Circle(25.5, 1.8), c => Shade(c, 0.6)),
-        ],
         [PointerShape.Lightsaber] =
         [
             new(Capsule(1.6, 24, 1.6), c => Tint(c, 0.75), Outlined: false, Glow: 3.5),

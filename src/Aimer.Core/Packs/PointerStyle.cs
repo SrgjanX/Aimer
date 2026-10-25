@@ -4,7 +4,6 @@ public enum PointerShape
 {
     Arrow,
     Sword,
-    Dagger,
     Lightsaber,
     Rocket,
 }

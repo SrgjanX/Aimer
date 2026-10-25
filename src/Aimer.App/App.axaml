@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Aimer.App.App"
              xmlns:local="using:Aimer.App"
+             xmlns:vm="using:Aimer.App.ViewModels"
+             x:DataType="vm:MainViewModel"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -12,4 +14,22 @@
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
+
+    <!-- The app keeps running in the tray when the window is closed; Exit quits it. -->
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Assets/avalonia-logo.ico" ToolTipText="Aimer" Clicked="OnTrayClicked">
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Show Aimer" Click="OnShowClicked" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Apply" Command="{Binding ApplyCommand}" />
+                        <NativeMenuItem Header="Restore defaults" Command="{Binding RestoreCommand}" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Exit" Click="OnExitClicked" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
 </Application>

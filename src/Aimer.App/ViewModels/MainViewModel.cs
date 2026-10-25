@@ -16,6 +16,12 @@ namespace Aimer.App.ViewModels;
 
 public sealed record ColorOption(string Name, CursorColor Color);
 
+public enum CursorShape
+{
+    Crosshair,
+    Sword,
+}
+
 public partial class MainViewModel : ViewModelBase
 {
     private const int PreviewSize = 128;
@@ -28,6 +34,15 @@ public partial class MainViewModel : ViewModelBase
         SelectedColor = Colors[0];
         UpdatePreview();
     }
+
+    public IReadOnlyList<CursorShape> Shapes { get; } = Enum.GetValues<CursorShape>();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCrosshair))]
+    public partial CursorShape SelectedShape { get; set; }
+
+    /// <summary>Length, gap, thickness and center dot only apply to the crosshair.</summary>
+    public bool IsCrosshair => SelectedShape == CursorShape.Crosshair;
 
     public IReadOnlyList<ColorOption> Colors { get; } =
     [
@@ -68,8 +83,10 @@ public partial class MainViewModel : ViewModelBase
     {
         Run(() =>
         {
-            _applier!.Apply(CrosshairRenderer.RenderTheme(BuildStyle(), "Aimer Crosshair", CursorSizes));
-            return "Crosshair applied.";
+            _applier!.Apply(SelectedShape == CursorShape.Sword
+                ? SwordRenderer.RenderTheme(BuildSwordStyle(), "Aimer Sword", CursorSizes)
+                : CrosshairRenderer.RenderTheme(BuildStyle(), "Aimer Crosshair", CursorSizes));
+            return $"{SelectedShape} applied.";
         });
     }
 
@@ -86,7 +103,7 @@ public partial class MainViewModel : ViewModelBase
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (e.PropertyName is not (nameof(Preview) or nameof(Status)))
+        if (e.PropertyName is not (nameof(Preview) or nameof(Status) or nameof(IsCrosshair)))
             UpdatePreview();
     }
 
@@ -118,11 +135,19 @@ public partial class MainViewModel : ViewModelBase
         CenterDot = CenterDot,
     };
 
+    private SwordStyle BuildSwordStyle() => new()
+    {
+        Color = SelectedColor.Color,
+        Outline = Outline,
+    };
+
     private void UpdatePreview()
     {
         if (SelectedColor is null)
             return;
-        Preview = ToBitmap(CrosshairRenderer.Render(BuildStyle(), PreviewSize));
+        Preview = ToBitmap(SelectedShape == CursorShape.Sword
+            ? SwordRenderer.Render(BuildSwordStyle(), PreviewSize)
+            : CrosshairRenderer.Render(BuildStyle(), PreviewSize));
     }
 
     private static Bitmap ToBitmap(CursorImage image)

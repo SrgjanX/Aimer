@@ -27,7 +27,10 @@
         <Grid Grid.Column="1" RowDefinitions="*,Auto" Margin="24,0,0,0">
             <ScrollViewer Grid.Row="0">
                 <StackPanel Spacing="8" Margin="0,0,16,0">
-                    <TextBlock Text="Crosshair" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="Cursor" FontSize="20" FontWeight="SemiBold" />
+
+                    <TextBlock Text="Shape" />
+                    <ComboBox ItemsSource="{Binding Shapes}" SelectedItem="{Binding SelectedShape}" MinWidth="160" />
 
                     <TextBlock Text="Color" />
                     <ComboBox ItemsSource="{Binding Colors}" SelectedItem="{Binding SelectedColor}" MinWidth="160">
@@ -38,19 +41,22 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
-                    <TextBlock Text="{Binding Length, StringFormat='Length: {0:0}'}" />
-                    <Slider Minimum="1" Maximum="14" Value="{Binding Length}" TickFrequency="1" IsSnapToTickEnabled="True" />
+                    <!-- Crosshair-only settings. -->
+                    <StackPanel Spacing="8" IsVisible="{Binding IsCrosshair}">
+                        <TextBlock Text="{Binding Length, StringFormat='Length: {0:0}'}" />
+                        <Slider Minimum="1" Maximum="14" Value="{Binding Length}" TickFrequency="1" IsSnapToTickEnabled="True" />
 
-                    <TextBlock Text="{Binding Gap, StringFormat='Gap: {0:0}'}" />
-                    <Slider Minimum="0" Maximum="10" Value="{Binding Gap}" TickFrequency="1" IsSnapToTickEnabled="True" />
+                        <TextBlock Text="{Binding Gap, StringFormat='Gap: {0:0}'}" />
+                        <Slider Minimum="0" Maximum="10" Value="{Binding Gap}" TickFrequency="1" IsSnapToTickEnabled="True" />
 
-                    <TextBlock Text="{Binding Thickness, StringFormat='Thickness: {0:0}'}" />
-                    <Slider Minimum="1" Maximum="6" Value="{Binding Thickness}" TickFrequency="1" IsSnapToTickEnabled="True" />
+                        <TextBlock Text="{Binding Thickness, StringFormat='Thickness: {0:0}'}" />
+                        <Slider Minimum="1" Maximum="6" Value="{Binding Thickness}" TickFrequency="1" IsSnapToTickEnabled="True" />
+                    </StackPanel>
 
                     <TextBlock Text="{Binding Outline, StringFormat='Outline: {0:0}'}" />
                     <Slider Minimum="0" Maximum="3" Value="{Binding Outline}" TickFrequency="1" IsSnapToTickEnabled="True" />
 
-                    <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" />
+                    <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" IsVisible="{Binding IsCrosshair}" />
                 </StackPanel>
             </ScrollViewer>
 

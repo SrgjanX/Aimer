@@ -19,7 +19,11 @@ public sealed record ColorOption(string Name, CursorColor Color);
 public enum CursorShape
 {
     Crosshair,
+    Arrow,
     Sword,
+    Dagger,
+    Lightsaber,
+    Rocket,
 }
 
 public partial class MainViewModel : ViewModelBase
@@ -83,9 +87,10 @@ public partial class MainViewModel : ViewModelBase
     {
         Run(() =>
         {
-            _applier!.Apply(SelectedShape == CursorShape.Sword
-                ? SwordRenderer.RenderTheme(BuildSwordStyle(), "Aimer Sword", CursorSizes)
-                : CrosshairRenderer.RenderTheme(BuildStyle(), "Aimer Crosshair", CursorSizes));
+            var name = $"Aimer {SelectedShape}";
+            _applier!.Apply(IsCrosshair
+                ? CrosshairRenderer.RenderTheme(BuildStyle(), name, CursorSizes)
+                : PointerRenderer.RenderTheme(BuildPointerStyle(), name, CursorSizes));
             return $"{SelectedShape} applied.";
         });
     }
@@ -135,8 +140,16 @@ public partial class MainViewModel : ViewModelBase
         CenterDot = CenterDot,
     };
 
-    private SwordStyle BuildSwordStyle() => new()
+    private PointerStyle BuildPointerStyle() => new()
     {
+        Shape = SelectedShape switch
+        {
+            CursorShape.Arrow => PointerShape.Arrow,
+            CursorShape.Dagger => PointerShape.Dagger,
+            CursorShape.Lightsaber => PointerShape.Lightsaber,
+            CursorShape.Rocket => PointerShape.Rocket,
+            _ => PointerShape.Sword,
+        },
         Color = SelectedColor.Color,
         Outline = Outline,
     };
@@ -145,9 +158,9 @@ public partial class MainViewModel : ViewModelBase
     {
         if (SelectedColor is null)
             return;
-        Preview = ToBitmap(SelectedShape == CursorShape.Sword
-            ? SwordRenderer.Render(BuildSwordStyle(), PreviewSize)
-            : CrosshairRenderer.Render(BuildStyle(), PreviewSize));
+        Preview = ToBitmap(IsCrosshair
+            ? CrosshairRenderer.Render(BuildStyle(), PreviewSize)
+            : PointerRenderer.Render(BuildPointerStyle(), PreviewSize));
     }
 
     private static Bitmap ToBitmap(CursorImage image)

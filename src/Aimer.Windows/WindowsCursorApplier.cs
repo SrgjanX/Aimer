@@ -116,7 +116,11 @@ public sealed class WindowsCursorApplier : ICursorApplier
     private static void ReloadSystemCursors()
     {
         if (!SystemParametersInfo(SPI_SETCURSORS, 0, IntPtr.Zero, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE))
-            throw new Win32Exception(Marshal.GetLastWin32Error());
+        {
+            var error = Marshal.GetLastWin32Error();
+            if (error != 0)
+                throw new Win32Exception(error);
+        }
     }
 
     [DllImport("user32.dll", SetLastError = true)]

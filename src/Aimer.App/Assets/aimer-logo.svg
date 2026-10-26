@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2A3039"/>
+      <stop offset="1" stop-color="#16191E"/>
+    </linearGradient>
+    <linearGradient id="accent" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="216" y2="216">
+      <stop offset="0" stop-color="#FF4D5A"/>
+      <stop offset="1" stop-color="#FF9B3D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+
+  <!-- Reticle -->
+  <g fill="none" stroke="url(#accent)" stroke-width="16" stroke-linecap="round">
+    <circle cx="128" cy="128" r="74"/>
+    <line x1="128" y1="30" x2="128" y2="84"/>
+    <line x1="128" y1="172" x2="128" y2="226"/>
+    <line x1="30" y1="128" x2="84" y2="128"/>
+    <line x1="172" y1="128" x2="226" y2="128"/>
+  </g>
+
+  <!-- Pointer, tip on the reticle center -->
+  <path id="pointer" d="M128 128 L128 206 L146.4 187.8 L160.2 220 L170.3 215.4 L156.5 184.1 L183.2 183.2 Z"
+        fill="none" stroke="#111317" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M128 128 L128 206 L146.4 187.8 L160.2 220 L170.3 215.4 L156.5 184.1 L183.2 183.2 Z"
+        fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+</svg>

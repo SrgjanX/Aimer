@@ -18,7 +18,7 @@
     <!-- The app keeps running in the tray when the window is closed; Exit quits it. -->
     <TrayIcon.Icons>
         <TrayIcons>
-            <TrayIcon Icon="/Assets/avalonia-logo.ico" ToolTipText="Aimer" Clicked="OnTrayClicked">
+            <TrayIcon Icon="/Assets/aimer.ico" ToolTipText="Aimer" Clicked="OnTrayClicked">
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="Show Aimer" Click="OnShowClicked" />

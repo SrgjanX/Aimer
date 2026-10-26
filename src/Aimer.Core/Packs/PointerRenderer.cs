@@ -33,21 +33,6 @@ public static class PointerRenderer
             // The classic pointer, given in plain x/y.
             new(Polygon(Xy((0, 0), (0, 17), (4.2, 13.2), (7.2, 20), (10, 18.8), (7.1, 12.2), (12.5, 12.2))), c => c),
         ],
-        [PointerShape.Scope] =
-        [
-            // Centered on the hotspot, given in plain x/y: a ring with thick posts that
-            // thin out toward the middle, and a dot at the aim point.
-            new(Ring(12, 1), c => c),
-            new(Rect(-13, -1, -7, 1), c => c),
-            new(Rect(7, -1, 13, 1), c => c),
-            new(Rect(-1, -13, 1, -7), c => c),
-            new(Rect(-1, 7, 1, 13), c => c),
-            new(Rect(-7, -0.4, -2, 0.4), c => c),
-            new(Rect(2, -0.4, 7, 0.4), c => c),
-            new(Rect(-0.4, -7, 0.4, -2), c => c),
-            new(Rect(-0.4, 2, 0.4, 7), c => c),
-            new(Circle(0, 0.9), c => c),
-        ],
         [PointerShape.BowArrow] =
         [
             new(Polygon((24, 0.8), (27, 3.4), (33, 3.4), (31, 0.8)), c => c),
@@ -86,9 +71,6 @@ public static class PointerRenderer
         ],
     };
 
-    /// <summary>Shapes whose click point is the center of the image rather than the top-left tip.</summary>
-    private static readonly HashSet<PointerShape> Centered = [PointerShape.Scope];
-
     public static CursorTheme RenderTheme(PointerStyle style, string name, IReadOnlyList<int> sizes)
     {
         IReadOnlyList<CursorImage> images = sizes.Select(size => Render(style, size)).ToArray();
@@ -104,10 +86,7 @@ public static class PointerRenderer
 
         // The tip sits just inside the top-left corner, leaving room for the outline,
         // and further in for shapes with a glow so the halo is not cut off.
-        // Centered shapes put it in the middle instead.
-        var tip = Centered.Contains(style.Shape)
-            ? BaseSize / 2
-            : Math.Max(outline, 0.5) + parts.Max(p => p.Glow) / Math.Sqrt(2);
+        var tip = Math.Max(outline, 0.5) + parts.Max(p => p.Glow) / Math.Sqrt(2);
         var hotspot = Math.Clamp((int)(tip * scale), 0, size - 1);
         var image = new CursorImage(size, size, hotspot, hotspot);
 
@@ -152,10 +131,10 @@ public static class PointerRenderer
                 const double total = Samples * Samples;
                 var pixel = new CursorColor(0, 0, 0, 0);
                 for (var i = 0; i < parts.Length; i++)
-                    pixel = Over(style.Color, glowCover[i] / total * 0.8, pixel);
-                pixel = Over(style.OutlineColor, outlineCover / total, pixel);
+                    pixel = CursorImage.Over(style.Color, glowCover[i] / total * 0.8, pixel);
+                pixel = CursorImage.Over(style.OutlineColor, outlineCover / total, pixel);
                 for (var i = 0; i < parts.Length; i++)
-                    pixel = Over(fills[i], partCover[i] / total, pixel);
+                    pixel = CursorImage.Over(fills[i], partCover[i] / total, pixel);
                 image.SetPixel(x, y, pixel);
             }
         }
@@ -168,14 +147,6 @@ public static class PointerRenderer
 
     private static Func<double, double, double> Box(double u0, double u1, double halfWidth) =>
         Polygon((u0, -halfWidth), (u1, -halfWidth), (u1, halfWidth), (u0, halfWidth));
-
-    /// <summary>An axis-aligned rectangle given in plain x/y.</summary>
-    private static Func<double, double, double> Rect(double x0, double y0, double x1, double y1) =>
-        Polygon(Xy((x0, y0), (x1, y0), (x1, y1), (x0, y1)));
-
-    /// <summary>A circular band of the given half-width around the origin.</summary>
-    private static Func<double, double, double> Ring(double radius, double halfWidth) =>
-        (pu, pv) => Math.Abs(Math.Sqrt(pu * pu + pv * pv) - radius) - halfWidth;
 
     private static Func<double, double, double> Circle(double u, double radius) =>
         (pu, pv) => Math.Sqrt((pu - u) * (pu - u) + pv * pv) - radius;
@@ -220,18 +191,5 @@ public static class PointerRenderer
     {
         byte Lift(byte c) => (byte)Math.Round(c + (255 - c) * amount);
         return new(Lift(color.R), Lift(color.G), Lift(color.B), color.A);
-    }
-
-    /// <summary>Paints <paramref name="color"/> at the given coverage over a straight-alpha pixel.</summary>
-    private static CursorColor Over(CursorColor color, double coverage, CursorColor dest)
-    {
-        if (coverage <= 0)
-            return dest;
-
-        var srcA = coverage * color.A / 255.0;
-        var dstA = dest.A / 255.0;
-        var outA = srcA + dstA * (1 - srcA);
-        byte Mix(byte s, byte d) => (byte)Math.Round((s * srcA + d * dstA * (1 - srcA)) / outA);
-        return new CursorColor(Mix(color.R, dest.R), Mix(color.G, dest.G), Mix(color.B, dest.B), (byte)Math.Round(outA * 255));
     }
 }

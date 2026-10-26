@@ -56,6 +56,23 @@ public sealed class CursorImage
             for (var x = x0; x < x1; x++)
                 SetPixel(x, y, color);
     }
+
+    /// <summary>Paints <paramref name="color"/> at the given coverage (0-1) over the pixel at x, y.</summary>
+    public void Blend(int x, int y, CursorColor color, double coverage) =>
+        SetPixel(x, y, Over(color, coverage, GetPixel(x, y)));
+
+    /// <summary>Paints <paramref name="color"/> at the given coverage over a straight-alpha pixel.</summary>
+    internal static CursorColor Over(CursorColor color, double coverage, CursorColor dest)
+    {
+        if (coverage <= 0)
+            return dest;
+
+        var srcA = coverage * color.A / 255.0;
+        var dstA = dest.A / 255.0;
+        var outA = srcA + dstA * (1 - srcA);
+        byte Mix(byte s, byte d) => (byte)Math.Round((s * srcA + d * dstA * (1 - srcA)) / outA);
+        return new CursorColor(Mix(color.R, dest.R), Mix(color.G, dest.G), Mix(color.B, dest.B), (byte)Math.Round(outA * 255));
+    }
 }
 
 public readonly record struct CursorColor(byte R, byte G, byte B, byte A = 255);

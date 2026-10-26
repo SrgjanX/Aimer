@@ -41,6 +41,26 @@ public class CrosshairRendererTests
     }
 
     [Fact]
+    public void DotSizeIsIndependentOfThickness()
+    {
+        // A 1px core centered on pixel 16 takes a 3px dot spanning 15..17.
+        var image = CrosshairRenderer.Render(Style with { Thickness = 1, CenterDot = true, DotSize = 3 }, 32);
+        Assert.Equal(Style.Color, image.GetPixel(15, 15));
+        Assert.Equal(Style.Color, image.GetPixel(17, 17));
+        Assert.Equal(Style.OutlineColor, image.GetPixel(14, 16));
+    }
+
+    [Fact]
+    public void RingIsDrawnOnlyWhenItHasARadius()
+    {
+        // (21, 11) lies on the scope's ring, between the top and right arms.
+        var scope = CrosshairRenderer.Render(CrosshairRenderer.Scope, 32);
+        var plain = CrosshairRenderer.Render(CrosshairRenderer.Scope with { RingRadius = 0 }, 32);
+        Assert.True(scope.GetPixel(21, 11).G > 128);
+        Assert.Equal(0, plain.GetPixel(21, 11).A);
+    }
+
+    [Fact]
     public void ThemeCoversArrowAndCrosshairAtEverySize()
     {
         var theme = CrosshairRenderer.RenderTheme(Style, "Test", [32, 64]);

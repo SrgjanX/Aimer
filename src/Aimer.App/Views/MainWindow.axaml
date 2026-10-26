@@ -51,12 +51,27 @@
 
                         <TextBlock Text="{Binding Thickness, StringFormat='Thickness: {0:0}'}" />
                         <Slider Minimum="1" Maximum="6" Value="{Binding Thickness}" TickFrequency="1" IsSnapToTickEnabled="True" />
+
+                        <!-- Scope-only settings. -->
+                        <StackPanel Spacing="8" IsVisible="{Binding IsScope}">
+                            <TextBlock Text="{Binding RingRadius, StringFormat='Ring size: {0:0.#}'}" />
+                            <Slider Minimum="2" Maximum="15" Value="{Binding RingRadius}" TickFrequency="0.5" IsSnapToTickEnabled="True" />
+
+                            <TextBlock Text="{Binding RingThickness, StringFormat='Ring thickness: {0:0}'}" />
+                            <Slider Minimum="1" Maximum="4" Value="{Binding RingThickness}" TickFrequency="1" IsSnapToTickEnabled="True" />
+                        </StackPanel>
                     </StackPanel>
 
                     <TextBlock Text="{Binding Outline, StringFormat='Outline: {0:0}'}" />
                     <Slider Minimum="0" Maximum="3" Value="{Binding Outline}" TickFrequency="1" IsSnapToTickEnabled="True" />
 
-                    <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" IsVisible="{Binding IsCrosshair}" />
+                    <StackPanel Spacing="8" IsVisible="{Binding IsCrosshair}">
+                        <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" />
+                        <StackPanel Spacing="8" IsVisible="{Binding CenterDot}">
+                            <TextBlock Text="{Binding DotSize, StringFormat='Dot size: {0:0}'}" />
+                            <Slider Minimum="1" Maximum="6" Value="{Binding DotSize}" TickFrequency="1" IsSnapToTickEnabled="True" />
+                        </StackPanel>
+                    </StackPanel>
                 </StackPanel>
             </ScrollViewer>
 

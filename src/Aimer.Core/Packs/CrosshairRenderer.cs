@@ -16,6 +16,14 @@ public static class CrosshairRenderer
         RingThickness = 1,
     };
 
+    /// <summary>The dot preset: a lone square dot on the aim point.</summary>
+    public static readonly CrosshairStyle Dot = new()
+    {
+        Arms = false,
+        CenterDot = true,
+        DotSize = 4,
+    };
+
     /// <summary>The roles a crosshair theme replaces; links, text and resize cursors stay normal.</summary>
     public static readonly CursorRole[] Roles = [CursorRole.Arrow, CursorRole.Crosshair];
 
@@ -39,13 +47,14 @@ public static class CrosshairRenderer
         var lo = size / 2 - thickness / 2;
         var hi = lo + thickness;
 
-        (int X0, int Y0, int X1, int Y1)[] rects =
-        [
-            (lo - gap - length, lo, lo - gap, hi), // left
-            (hi + gap, lo, hi + gap + length, hi), // right
-            (lo, lo - gap - length, hi, lo - gap), // top
-            (lo, hi + gap, hi, hi + gap + length), // bottom
-        ];
+        (int X0, int Y0, int X1, int Y1)[] rects = style.Arms
+            ? [
+                (lo - gap - length, lo, lo - gap, hi), // left
+                (hi + gap, lo, hi + gap + length, hi), // right
+                (lo, lo - gap - length, hi, lo - gap), // top
+                (lo, hi + gap, hi, hi + gap + length), // bottom
+            ]
+            : [];
         // The dot is centered on the core, as nearly as whole pixels allow when its size and the thickness differ in parity.
         var center = lo + thickness / 2.0;
         if (style.CenterDot)

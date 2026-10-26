@@ -41,8 +41,8 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
-                    <!-- Crosshair-only settings. -->
-                    <StackPanel Spacing="8" IsVisible="{Binding IsCrosshair}">
+                    <!-- Crosshair and scope settings. -->
+                    <StackPanel Spacing="8" IsVisible="{Binding HasArms}">
                         <TextBlock Text="{Binding Length, StringFormat='Length: {0:0}'}" />
                         <Slider Minimum="1" Maximum="14" Value="{Binding Length}" TickFrequency="1" IsSnapToTickEnabled="True" />
 
@@ -65,12 +65,10 @@
                     <TextBlock Text="{Binding Outline, StringFormat='Outline: {0:0}'}" />
                     <Slider Minimum="0" Maximum="3" Value="{Binding Outline}" TickFrequency="1" IsSnapToTickEnabled="True" />
 
-                    <StackPanel Spacing="8" IsVisible="{Binding IsCrosshair}">
-                        <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" />
-                        <StackPanel Spacing="8" IsVisible="{Binding CenterDot}">
-                            <TextBlock Text="{Binding DotSize, StringFormat='Dot size: {0:0}'}" />
-                            <Slider Minimum="1" Maximum="6" Value="{Binding DotSize}" TickFrequency="1" IsSnapToTickEnabled="True" />
-                        </StackPanel>
+                    <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" IsVisible="{Binding HasArms}" />
+                    <StackPanel Spacing="8" IsVisible="{Binding ShowDotSize}">
+                        <TextBlock Text="{Binding DotSize, StringFormat='Dot size: {0:0}'}" />
+                        <Slider Minimum="1" Maximum="10" Value="{Binding DotSize}" TickFrequency="1" IsSnapToTickEnabled="True" />
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

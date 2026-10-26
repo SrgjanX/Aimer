@@ -61,6 +61,18 @@ public class CrosshairRendererTests
     }
 
     [Fact]
+    public void DotPresetDrawsOnlyTheDot()
+    {
+        // A 2px core centered on 16 takes a 4px dot spanning 14..17; the arms' spots stay empty.
+        var image = CrosshairRenderer.Render(CrosshairRenderer.Dot, 32);
+        Assert.Equal(Style.Color, image.GetPixel(14, 14));
+        Assert.Equal(Style.Color, image.GetPixel(17, 17));
+        Assert.Equal(Style.OutlineColor, image.GetPixel(13, 16));
+        Assert.Equal(0, image.GetPixel(8, 16).A);
+        Assert.Equal(0, image.GetPixel(16, 8).A);
+    }
+
+    [Fact]
     public void ThemeCoversArrowAndCrosshairAtEverySize()
     {
         var theme = CrosshairRenderer.RenderTheme(Style, "Test", [32, 64]);

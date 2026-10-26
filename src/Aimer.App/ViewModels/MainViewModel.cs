@@ -21,6 +21,7 @@ public enum CursorShape
     Crosshair,
     Arrow,
     Scope,
+    Dot,
     BowArrow,
     Sword,
     Lightsaber,
@@ -39,6 +40,7 @@ public partial class MainViewModel : ViewModelBase
     {
         [CursorShape.Crosshair] = new CrosshairStyle(),
         [CursorShape.Scope] = CrosshairRenderer.Scope,
+        [CursorShape.Dot] = CrosshairRenderer.Dot,
     };
 
     public MainViewModel()
@@ -50,14 +52,20 @@ public partial class MainViewModel : ViewModelBase
     public IReadOnlyList<CursorShape> Shapes { get; } = Enum.GetValues<CursorShape>();
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCrosshair), nameof(IsScope))]
+    [NotifyPropertyChangedFor(nameof(IsCrosshair), nameof(HasArms), nameof(IsScope), nameof(ShowDotSize))]
     public partial CursorShape SelectedShape { get; set; }
 
-    /// <summary>Length, gap, thickness and center dot only apply to the crosshair and the scope.</summary>
+    /// <summary>True for the shapes drawn by the crosshair renderer: crosshair, scope and dot.</summary>
     public bool IsCrosshair => _crosshairSettings.ContainsKey(SelectedShape);
+
+    /// <summary>Length, gap, thickness and the center dot toggle only apply to the crosshair and the scope.</summary>
+    public bool HasArms => IsCrosshair && SelectedShape != CursorShape.Dot;
 
     /// <summary>The ring settings only apply to the scope.</summary>
     public bool IsScope => SelectedShape == CursorShape.Scope;
+
+    /// <summary>The dot shape is always a dot; the others only when the center dot is on.</summary>
+    public bool ShowDotSize => SelectedShape == CursorShape.Dot || (HasArms && CenterDot);
 
     public IReadOnlyList<ColorOption> Colors { get; } =
     [
@@ -85,6 +93,7 @@ public partial class MainViewModel : ViewModelBase
     public partial double Outline { get; set; } = 1;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDotSize))]
     public partial bool CenterDot { get; set; }
 
     [ObservableProperty]
@@ -128,14 +137,14 @@ public partial class MainViewModel : ViewModelBase
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (e.PropertyName is not (nameof(Preview) or nameof(Status) or nameof(IsCrosshair) or nameof(IsScope)))
+        if (e.PropertyName is not (nameof(Preview) or nameof(Status) or nameof(IsCrosshair) or nameof(HasArms) or nameof(IsScope) or nameof(ShowDotSize)))
             UpdatePreview();
     }
 
     partial void OnSelectedShapeChanged(CursorShape oldValue, CursorShape newValue)
     {
         if (_crosshairSettings.ContainsKey(oldValue))
-            _crosshairSettings[oldValue] = BuildStyle();
+            _crosshairSettings[oldValue] = BuildStyle(oldValue);
         if (!_crosshairSettings.TryGetValue(newValue, out var style))
             return;
 
@@ -166,17 +175,23 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private CrosshairStyle BuildStyle() => new()
+    private CrosshairStyle BuildStyle() => BuildStyle(SelectedShape);
+
+    /// <summary>
+    /// The current slider settings as drawn for <paramref name="shape"/>. Hidden sliders clamp
+    /// their values to their own ranges, so settings a shape does not show are overridden here.
+    /// </summary>
+    private CrosshairStyle BuildStyle(CursorShape shape) => new()
     {
         Color = SelectedColor.Color,
+        Arms = shape != CursorShape.Dot,
         Length = Length,
         Gap = Gap,
         Thickness = Thickness,
         Outline = Outline,
-        CenterDot = CenterDot,
+        CenterDot = shape == CursorShape.Dot || CenterDot,
         DotSize = DotSize,
-        // The hidden ring slider clamps RingRadius up to its minimum, so only the scope may use it.
-        RingRadius = IsScope ? RingRadius : 0,
+        RingRadius = shape == CursorShape.Scope ? RingRadius : 0,
         RingThickness = RingThickness,
     };
 

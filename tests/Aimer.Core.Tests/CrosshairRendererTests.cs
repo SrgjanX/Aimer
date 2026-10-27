@@ -61,13 +61,16 @@ public class CrosshairRendererTests
     }
 
     [Fact]
-    public void DotPresetDrawsOnlyTheDot()
+    public void DotPresetDrawsOnlyARoundDot()
     {
-        // A 2px core centered on 16 takes a 4px dot spanning 14..17; the arms' spots stay empty.
+        // A 2px core centered on 16 takes a 4px disc spanning 14..17; the arms' spots stay empty.
         var image = CrosshairRenderer.Render(CrosshairRenderer.Dot, 32);
-        Assert.Equal(Style.Color, image.GetPixel(14, 14));
-        Assert.Equal(Style.Color, image.GetPixel(17, 17));
-        Assert.Equal(Style.OutlineColor, image.GetPixel(13, 16));
+        Assert.Equal(Style.Color, image.GetPixel(15, 15));
+        Assert.Equal(Style.Color, image.GetPixel(16, 16));
+        Assert.NotEqual(Style.Color, image.GetPixel(14, 14)); // corners are rounded off
+        Assert.NotEqual(Style.Color, image.GetPixel(17, 17));
+        Assert.Equal(Style.OutlineColor with { A = 0 }, image.GetPixel(13, 16) with { A = 0 }); // outline, its edge anti-aliased
+        Assert.True(image.GetPixel(13, 16).A > 200);
         Assert.Equal(0, image.GetPixel(8, 16).A);
         Assert.Equal(0, image.GetPixel(16, 8).A);
     }

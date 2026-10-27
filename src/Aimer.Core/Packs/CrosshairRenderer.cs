@@ -16,7 +16,7 @@ public static class CrosshairRenderer
         RingThickness = 1,
     };
 
-    /// <summary>The dot preset: a lone square dot on the aim point.</summary>
+    /// <summary>The dot preset: a lone round dot on the aim point.</summary>
     public static readonly CrosshairStyle Dot = new()
     {
         Arms = false,
@@ -56,10 +56,12 @@ public static class CrosshairRenderer
             ]
             : [];
         // The dot is centered on the core, as nearly as whole pixels allow when its size and the thickness differ in parity.
+        // A crosshair's center dot is a crisp square; a bare dot is drawn round.
         var center = lo + thickness / 2.0;
-        if (style.CenterDot)
+        var dot = style.CenterDot ? Scaled(style.DotSize, 1) : 0;
+        var discRadius = style.Arms ? 0 : dot / 2.0;
+        if (dot > 0 && style.Arms)
         {
-            var dot = Scaled(style.DotSize, 1);
             var dlo = (int)Math.Floor(center - dot / 2.0 + 0.5);
             rects = [.. rects, (dlo, dlo, dlo + dot, dlo + dot)];
         }
@@ -76,16 +78,23 @@ public static class CrosshairRenderer
                 image.FillRect(r.X0 - outline, r.Y0 - outline, r.X1 + outline, r.Y1 + outline, style.OutlineColor);
             if (ringRadius > 0)
                 DrawRing(image, center, ringRadius, ringHalf + outline, style.OutlineColor);
+            if (discRadius > 0)
+                DrawRing(image, center, 0, discRadius + outline, style.OutlineColor);
         }
         foreach (var r in rects)
             image.FillRect(r.X0, r.Y0, r.X1, r.Y1, style.Color);
         if (ringRadius > 0)
             DrawRing(image, center, ringRadius, ringHalf, style.Color);
+        if (discRadius > 0)
+            DrawRing(image, center, 0, discRadius, style.Color);
 
         return image;
     }
 
-    /// <summary>Paints the band within <paramref name="halfWidth"/> of a circle, anti-aliased by supersampling.</summary>
+    /// <summary>
+    /// Paints the band within <paramref name="halfWidth"/> of a circle, anti-aliased by supersampling.
+    /// A zero <paramref name="radius"/> paints a filled disc.
+    /// </summary>
     private static void DrawRing(CursorImage image, double center, double radius, double halfWidth, CursorColor color)
     {
         const int samples = 4; // per axis

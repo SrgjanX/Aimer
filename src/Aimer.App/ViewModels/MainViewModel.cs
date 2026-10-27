@@ -22,6 +22,8 @@ public enum CursorShape
     Arrow,
     Scope,
     Dot,
+    Square,
+    Triangle,
     BowArrow,
     Sword,
     Lightsaber,
@@ -41,6 +43,8 @@ public partial class MainViewModel : ViewModelBase
         [CursorShape.Crosshair] = new CrosshairStyle(),
         [CursorShape.Scope] = CrosshairRenderer.Scope,
         [CursorShape.Dot] = CrosshairRenderer.Dot,
+        [CursorShape.Square] = CrosshairRenderer.Square,
+        [CursorShape.Triangle] = CrosshairRenderer.Triangle,
     };
 
     public MainViewModel()
@@ -55,17 +59,17 @@ public partial class MainViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsCrosshair), nameof(HasArms), nameof(IsScope), nameof(ShowDotSize))]
     public partial CursorShape SelectedShape { get; set; }
 
-    /// <summary>True for the shapes drawn by the crosshair renderer: crosshair, scope and dot.</summary>
+    /// <summary>True for the shapes drawn by the crosshair renderer: crosshair, scope, dot, square and triangle.</summary>
     public bool IsCrosshair => _crosshairSettings.ContainsKey(SelectedShape);
 
     /// <summary>Length, gap, thickness and the center dot toggle only apply to the crosshair and the scope.</summary>
-    public bool HasArms => IsCrosshair && SelectedShape != CursorShape.Dot;
+    public bool HasArms => IsCrosshair && !IsBare(SelectedShape);
 
     /// <summary>The ring settings only apply to the scope.</summary>
     public bool IsScope => SelectedShape == CursorShape.Scope;
 
-    /// <summary>The dot shape is always a dot; the others only when the center dot is on.</summary>
-    public bool ShowDotSize => SelectedShape == CursorShape.Dot || (HasArms && CenterDot);
+    /// <summary>The bare shapes are always just their mark; the others only have a dot when the center dot is on.</summary>
+    public bool ShowDotSize => IsBare(SelectedShape) || (HasArms && CenterDot);
 
     public IReadOnlyList<ColorOption> Colors { get; } =
     [
@@ -175,6 +179,9 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
+    /// <summary>The shapes that are a lone mark on the aim point, with no arms.</summary>
+    private static bool IsBare(CursorShape shape) => shape is CursorShape.Dot or CursorShape.Square or CursorShape.Triangle;
+
     private CrosshairStyle BuildStyle() => BuildStyle(SelectedShape);
 
     /// <summary>
@@ -184,13 +191,19 @@ public partial class MainViewModel : ViewModelBase
     private CrosshairStyle BuildStyle(CursorShape shape) => new()
     {
         Color = SelectedColor.Color,
-        Arms = shape != CursorShape.Dot,
+        Arms = !IsBare(shape),
         Length = Length,
         Gap = Gap,
         Thickness = Thickness,
         Outline = Outline,
-        CenterDot = shape == CursorShape.Dot || CenterDot,
+        CenterDot = IsBare(shape) || CenterDot,
         DotSize = DotSize,
+        DotShape = shape switch
+        {
+            CursorShape.Dot => DotShape.Round,
+            CursorShape.Triangle => DotShape.Triangle,
+            _ => DotShape.Square,
+        },
         RingRadius = shape == CursorShape.Scope ? RingRadius : 0,
         RingThickness = RingThickness,
     };

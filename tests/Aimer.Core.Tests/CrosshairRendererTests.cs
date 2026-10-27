@@ -76,6 +76,31 @@ public class CrosshairRendererTests
     }
 
     [Fact]
+    public void SquarePresetDrawsASharpSquare()
+    {
+        // A 4px square spanning 14..17 keeps its corners, ringed by a 1px outline.
+        var image = CrosshairRenderer.Render(CrosshairRenderer.Square, 32);
+        Assert.Equal(Style.Color, image.GetPixel(14, 14));
+        Assert.Equal(Style.Color, image.GetPixel(17, 17));
+        Assert.Equal(Style.OutlineColor, image.GetPixel(13, 13));
+        Assert.Equal(0, image.GetPixel(12, 16).A);
+        Assert.Equal(0, image.GetPixel(8, 16).A);
+    }
+
+    [Fact]
+    public void TrianglePresetPointsUp()
+    {
+        // A 6px triangle centered on 16 runs from a tip near y = 13.4 to a base at y = 18.6.
+        var image = CrosshairRenderer.Render(CrosshairRenderer.Triangle, 32);
+        Assert.Equal(Style.Color, image.GetPixel(16, 17));
+        Assert.Equal(Style.Color, image.GetPixel(14, 17)); // wide near the base
+        Assert.NotEqual(Style.Color, image.GetPixel(14, 14)); // narrow near the tip
+        Assert.Equal(0, image.GetPixel(13, 13).A);
+        Assert.Equal(0, image.GetPixel(18, 13).A);
+        Assert.Equal(0, image.GetPixel(8, 16).A);
+    }
+
+    [Fact]
     public void ThemeCoversArrowAndCrosshairAtEverySize()
     {
         var theme = CrosshairRenderer.RenderTheme(Style, "Test", [32, 64]);

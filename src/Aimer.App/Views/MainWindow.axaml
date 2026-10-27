@@ -67,7 +67,7 @@
 
                     <CheckBox Content="Center dot" IsChecked="{Binding CenterDot}" IsVisible="{Binding HasArms}" />
                     <StackPanel Spacing="8" IsVisible="{Binding ShowDotSize}">
-                        <TextBlock Text="{Binding DotSize, StringFormat='Dot size: {0:0}'}" />
+                        <TextBlock Text="{Binding DotSize, StringFormat='Size: {0:0}'}" />
                         <Slider Minimum="1" Maximum="10" Value="{Binding DotSize}" TickFrequency="1" IsSnapToTickEnabled="True" />
                     </StackPanel>
                 </StackPanel>

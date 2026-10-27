@@ -22,6 +22,24 @@ public static class CrosshairRenderer
         Arms = false,
         CenterDot = true,
         DotSize = 4,
+        DotShape = DotShape.Round,
+    };
+
+    /// <summary>The square preset: a lone pixel-sharp square on the aim point.</summary>
+    public static readonly CrosshairStyle Square = new()
+    {
+        Arms = false,
+        CenterDot = true,
+        DotSize = 4,
+    };
+
+    /// <summary>The triangle preset: a lone upward triangle, its bounding box centered on the aim point.</summary>
+    public static readonly CrosshairStyle Triangle = new()
+    {
+        Arms = false,
+        CenterDot = true,
+        DotSize = 6,
+        DotShape = DotShape.Triangle,
     };
 
     /// <summary>The roles a crosshair theme replaces; links, text and resize cursors stay normal.</summary>
@@ -56,11 +74,10 @@ public static class CrosshairRenderer
             ]
             : [];
         // The dot is centered on the core, as nearly as whole pixels allow when its size and the thickness differ in parity.
-        // A crosshair's center dot is a crisp square; a bare dot is drawn round.
+        // A square dot is drawn as a crisp rect; round and triangular dots are anti-aliased.
         var center = lo + thickness / 2.0;
         var dot = style.CenterDot ? Scaled(style.DotSize, 1) : 0;
-        var discRadius = style.Arms ? 0 : dot / 2.0;
-        if (dot > 0 && style.Arms)
+        if (dot > 0 && style.DotShape == DotShape.Square)
         {
             var dlo = (int)Math.Floor(center - dot / 2.0 + 0.5);
             rects = [.. rects, (dlo, dlo, dlo + dot, dlo + dot)];
@@ -71,6 +88,7 @@ public static class CrosshairRenderer
 
         var ringRadius = style.RingRadius * scale;
         var ringHalf = Scaled(style.RingThickness, 1) / 2.0;
+        var smoothDot = dot > 0 && style.DotShape != DotShape.Square;
 
         if (outline > 0)
         {
@@ -78,31 +96,54 @@ public static class CrosshairRenderer
                 image.FillRect(r.X0 - outline, r.Y0 - outline, r.X1 + outline, r.Y1 + outline, style.OutlineColor);
             if (ringRadius > 0)
                 DrawRing(image, center, ringRadius, ringHalf + outline, style.OutlineColor);
-            if (discRadius > 0)
-                DrawRing(image, center, 0, discRadius + outline, style.OutlineColor);
+            if (smoothDot)
+                DrawDot(image, style.DotShape, center, dot / 2.0, outline, style.OutlineColor);
         }
         foreach (var r in rects)
             image.FillRect(r.X0, r.Y0, r.X1, r.Y1, style.Color);
         if (ringRadius > 0)
             DrawRing(image, center, ringRadius, ringHalf, style.Color);
-        if (discRadius > 0)
-            DrawRing(image, center, 0, discRadius, style.Color);
+        if (smoothDot)
+            DrawDot(image, style.DotShape, center, dot / 2.0, 0, style.Color);
 
         return image;
     }
 
+    /// <summary>Paints the band within <paramref name="halfWidth"/> of a circle.</summary>
+    private static void DrawRing(CursorImage image, double center, double radius, double halfWidth, CursorColor color) =>
+        Paint(image, center, radius + halfWidth, (dx, dy) => Math.Abs(Math.Sqrt(dx * dx + dy * dy) - radius) <= halfWidth, color);
+
     /// <summary>
-    /// Paints the band within <paramref name="halfWidth"/> of a circle, anti-aliased by supersampling.
-    /// A zero <paramref name="radius"/> paints a filled disc.
+    /// Paints a round or triangular dot <paramref name="half"/> wide either side of the center, grown by
+    /// <paramref name="grow"/> on every side for its outline.
     /// </summary>
-    private static void DrawRing(CursorImage image, double center, double radius, double halfWidth, CursorColor color)
+    private static void DrawDot(CursorImage image, DotShape shape, double center, double half, double grow, CursorColor color)
+    {
+        if (shape == DotShape.Round)
+        {
+            DrawRing(image, center, 0, half + grow, color);
+            return;
+        }
+
+        // An equilateral triangle with sides 2 * half; each test is the distance outside one edge's line,
+        // so growing it gives the outline mitered corners.
+        var height = half * Math.Sqrt(3);
+        Paint(image, center, height + 2 * grow, (dx, dy) =>
+            dy - height / 2 <= grow && (Math.Abs(dx) * Math.Sqrt(3) - dy - height / 2) / 2 <= grow, color);
+    }
+
+    /// <summary>
+    /// Paints every point within <paramref name="reach"/> of the center that <paramref name="inside"/> accepts,
+    /// given its offset from the center, anti-aliased by supersampling.
+    /// </summary>
+    private static void Paint(CursorImage image, double center, double reach, Func<double, double, bool> inside, CursorColor color)
     {
         const int samples = 4; // per axis
-        var reach = (int)Math.Ceiling(radius + halfWidth) + 1;
-        var x0 = Math.Max(0, (int)center - reach);
-        var x1 = Math.Min(image.Width, (int)center + reach + 1);
-        var y0 = Math.Max(0, (int)center - reach);
-        var y1 = Math.Min(image.Height, (int)center + reach + 1);
+        var extent = (int)Math.Ceiling(reach) + 1;
+        var x0 = Math.Max(0, (int)center - extent);
+        var x1 = Math.Min(image.Width, (int)center + extent + 1);
+        var y0 = Math.Max(0, (int)center - extent);
+        var y1 = Math.Min(image.Height, (int)center + extent + 1);
 
         for (var y = y0; y < y1; y++)
         {
@@ -115,7 +156,7 @@ public static class CrosshairRenderer
                     {
                         var dx = x + (sx + 0.5) / samples - center;
                         var dy = y + (sy + 0.5) / samples - center;
-                        if (Math.Abs(Math.Sqrt(dx * dx + dy * dy) - radius) <= halfWidth)
+                        if (inside(dx, dy))
                             hits++;
                     }
                 }
